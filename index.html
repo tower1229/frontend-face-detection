@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+    <title>前端人脸识别-提取-合成</title>
+    <meta content="tracking.js,前端人脸识别,人脸识别提取,图片合成" name="Keywords">
+    <meta content="本示例演示了如何使用tracking.js实现前端人脸识别、提取、及合成" name="Description">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="/asset/ui.css">
+    <style>
+    .demo-container {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .rect {
+        border: 2px solid #a64ceb;
+        left: -1000px;
+        position: absolute;
+        top: -1000px;
+    }
+
+    .demo {
+        position: absolute;
+        width: 640px;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        z-index: 9;
+    }
+
+    .demo li {
+        display: inline-block;
+        width: 8em;
+        height: 8em;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        cursor: pointer;
+    }
+
+    .foot {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background: #333;
+        padding: 24px;
+        overflow: hidden;
+        color: #999;
+        font-size: 14px;
+        text-align: center;
+    }
+    </style>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?f10103677155b485824f29def715eb5d";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+</head>
+
+<body>
+    <h1 class="tc m"><a href="http://refined-x.com" title="前端路上">前端人脸识别-提取-合成</a></h1>
+    <div class="wrap">
+        <div class="form-inline p m-tb" style="background:#fcfcfc">
+            <div class="form-group row">
+                <div class="span-6">
+                    <h2>选择图片</h2>
+                    <div class="form-group row">
+                        <label class="control-label span-3">上传本地图片:</label>
+                        <div class="span-9">
+                            <label class="btn btn-primary" style="overflow: hidden;">
+                                上传
+                                <input id="file" type="file" accept="image/png,image/jpeg" style="position: absolute;top:-100px;">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="control-label span-3">载入远程图片:</label>
+                        <div class="span-9">
+                            <input type="text" class="form-control" id="remoteImg" placeholder="远程图片URL">
+                            <button type="button" class="btn btn-success" id="loadRemote">加载</button>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="control-label span-3">使用示例图片:</label>
+                        <div class="span-9">
+                            <div class="btn btn-ghost btn-success" id="toggleDemo">打开/关闭图库</div>
+                        </div>
+                    </div>
+                    <ul class="demo hide">
+                        <li data-src="/asset/1.jpg" data-stepsize="1.6" data-trackmode="1.5"></li>
+                        <li data-src="/asset/9.jpg" data-stepsize="1.7" data-trackmode="1.6"></li>
+                        <li data-src="/asset/4.jpg" data-stepsize="1.6" data-trackmode="1.4"></li>
+                        <li data-src="/asset/5.jpg" data-stepsize="1.7" data-trackmode="1.6"></li>
+                        <li data-src="/asset/6.jpg" data-stepsize="1.7" data-trackmode="1.6"></li>
+                        <li data-src="/asset/7.png" data-stepsize="1.5" data-trackmode="1.5"></li>
+                        <li data-src="/asset/8.jpg" data-stepsize="1.3" data-trackmode="1.4"></li>
+                    </ul>
+                </div>
+                <div class="span-6">
+                    <h2>参数设置</h2>
+                    <div class="form-group row">
+                        <div class="span-2">识别步长</div>
+                        <div class="span-4" id="myStepSize"></div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="span-2">比例因子</div>
+                        <div class="span-4" id="myScaleFactor"></div>
+                    </div>
+                    <div class="form-group text-info">
+                        选择合适的参数可以达到最佳识别效果，如果不知从何下手，可以选择<em>使用示例图片</em>。
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="span-6">
+                    <button type="button" class="btn btn-danger btn-lg" id="track">开始识别</button>
+                    <button type="button" class="btn btn-danger btn-lg btn-ghost" id="reset">重置</button>
+                </div>
+                <div class="span-6">
+                    <button type="button" class="btn btn-success btn-lg hide compound male">合成男军装照</button>
+                    <button type="button" class="btn btn-warning btn-lg hide compound">合成女军装照</button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="span-6">
+                <div class="demo-container" id="main">
+                    <img id="img" crossOrigin="" />
+                </div>
+            </div>
+            <div class="span-6">
+                <canvas id="myCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="hide">
+        <img src="/asset/female .png" id="femaleBg">
+        <img src="/asset/male.png" id="maleBg">
+        <img id="theFace">
+        <canvas id="faceCtx"></canvas>
+    </div>
+    <footer class="foot">
+        <p>© 2017 - 3017  Author
+            <a href="http://refined-x.com/" target="_blank">雅X共赏</a>  Powered By [ <a href="https://github.com/tower1229/Flow-UI" target="_blank">Flow-UI</a>,
+            <a href="http://alloyteam.github.io/AlloyImage/" target="_blank">AlloyImage</a>,
+            <a href="https://trackingjs.com/" target="_blank">trackingjs</a> ]
+        </p>
+    </footer>
+    <script type="text/javascript" src="/asset/sea.js" id="seajsnode"></script>
+    <script type="text/javascript" src="http://static-zt.oss-cn-qingdao.aliyuncs.com/modules/manifest.js"></script>
+    <script type="text/javascript" src="/asset/tracking-min.js"></script>
+    <script type="text/javascript" src="/asset/face-min.js"></script>
+    <script type="text/javascript" src="/asset/alloyimage-1.1.js"></script>
+    <script type="text/javascript">
+    seajs.config({
+        base: "http://static-zt.oss-cn-qingdao.aliyuncs.com/modules",
+        alias: {
+            "audio": "audio/audio",
+            "copy": "copy/ZeroClipboard",
+            "flv": "flv/flv",
+            "hook": "hook/hook",
+            "jquery": "jquery/3/jquery.js",
+            "validform": "validform/validform",
+            "raty": "raty/raty",
+            "upload": "upload/upload",
+            "makethumb": "upload/makethumb",
+            "localResizeIMG": "upload/localResizeIMG",
+            "video": "video/video"
+        }
+    });
+    </script>
+    <script type="text/javascript">
+    define('app', function(require) {
+        var Box = require('box');
+        var Slider = require('slider');
+        //选择器
+        var myStepSize = Slider({
+            el: '#myStepSize',
+            value: 1.5,
+            min: 1,
+            max: 2,
+            step: 0.1
+        });
+        var myScaleFactor = Slider({
+            el: '#myScaleFactor',
+            value: 1.5,
+            min: 1.1,
+            max: 2,
+            step: 0.1
+        });
+        //变量
+        var main = document.getElementById('main');
+        var img = document.getElementById('img');
+        var c = document.getElementById("myCanvas");
+        c.width = c.parentNode.offsetWidth;
+        var ctx = c.getContext("2d");
+        //示例图片
+        var demo = document.querySelector('.demo');
+        demo.querySelectorAll('li').forEach(function(e) {
+            var src = e.dataset.src;
+            if (src) {
+                e.style.backgroundImage = `url(${src})`;
+            }
+        });
+        demo.addEventListener('click', function(e) {
+            var target = e.target;
+            if (target && target.dataset.src) {
+                reset();
+                myStepSize.value(target.dataset.stepsize);
+                myScaleFactor.value(target.dataset.trackmode);
+                img.src = target.dataset.src;
+            }
+        });
+        document.getElementById('toggleDemo').addEventListener('click', function() {
+            if (demo.classList.contains('hide')) {
+                demo.classList.remove('hide');
+            } else {
+                demo.classList.add('hide');
+            }
+        });
+        //上传图片
+        document.getElementById('file').addEventListener('change', function(e) {
+            var file = e.target.files;
+            if (file.length) {
+                file = file[0];
+                var r = new FileReader();
+                r.readAsDataURL(file);
+                r.onload = function(e) {
+                    img.src = this.result;
+                };
+                reset();
+            }
+        });
+        //远程图片
+        document.getElementById('loadRemote').addEventListener('click', function() {
+            var remoteUrl = document.getElementById('remoteImg').value;
+            if (remoteUrl) {
+                reset();
+                img.src = remoteUrl;
+            }
+        });
+
+        //初始化识别任务
+        var faceLeft = 0;
+        var faceTop = 0;
+        var prop = 1;
+        var tracker = new tracking.ObjectTracker(['face']);
+        tracker.on('track', function(event) {
+            Box.hide();
+            if (!event.data.length) {
+                comBtn.forEach(function(e) {
+                    e.classList.add('hide');
+                });
+                return Box.toast('画面中没有人脸');
+            }
+            comBtn.forEach(function(e) {
+                e.classList.remove('hide');
+            });
+            Box.toast('识别成功');
+            event.data.forEach(function(rect, i) {
+                if (!i) {
+                    theFace = rect;
+                }
+                plot(rect.x, rect.y, rect.width, rect.height);
+                ctx.drawImage(img, rect.x * prop, rect.y * prop, rect.width * prop, rect.height * prop, faceLeft, faceTop, rect.width * prop, rect.height * prop);
+                if (faceLeft + (rect.width * prop + 10) < 500) {
+                    faceLeft += (rect.width * prop + 10);
+                } else {
+                    faceLeft = 0;
+                    faceTop += 200;
+                }
+            });
+        });
+        //合成
+        var theFace;
+        var faceImg = document.getElementById('theFace');
+        var faceC = document.getElementById('faceCtx');
+        var faceCtx = faceC.getContext('2d');
+        var comBtn = document.querySelectorAll('.compound');
+        var maleBg = document.getElementById('maleBg');
+        var femaleBg = document.getElementById('femaleBg');
+        comBtn.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var isMale = btn.classList.contains('male');
+                c.width = 400;
+                c.height = 480;
+                ctx.clearRect(0, 0, c.width, c.height);
+                if (theFace) {
+                    faceC.width = theFace.width * prop;
+                    faceC.height = theFace.height * prop;
+                    faceCtx.clearRect(0, 0, faceC.width, faceC.height);
+                    faceCtx.drawImage(img, theFace.x * prop, theFace.y * prop, theFace.width * prop, theFace.height * prop, 0, 0, theFace.width * prop, theFace.height * prop);
+                    faceImg.src = faceC.toDataURL("image/jpeg", 1.0);
+                    faceImg.loadOnce(function() {
+                        if (isMale) {
+                            AlloyImage(this).act("灰度处理").add(
+                                AlloyImage(this.width, this.height, "#808080")
+                                .act("高斯模糊", 4)
+                                .act("色相/饱和度调节", 22, 45, 0, true),
+                                "叠加"
+                            ).replace(this);
+                        } else {
+                            AlloyImage(this).act("灰度处理").add(
+                                AlloyImage(this.width, this.height, "#808080")
+                                .act("高斯模糊", 4)
+                                .act("色相/饱和度调节", 28, 55, 0, true),
+                                "叠加"
+                            ).replace(this);
+                        }
+                        setTimeout(function() {
+                            var newFace = document.getElementById('theFace');
+                            if (isMale) {
+                                ctx.drawImage(newFace, 0, 0, theFace.width * prop, theFace.height * prop, 95, 100, 186, 186);
+                                ctx.drawImage(maleBg, 0, 0);
+                            } else {
+                                ctx.drawImage(newFace, 0, 0, theFace.width * prop, theFace.height * prop, 117, 74, 194, 194);
+                                ctx.drawImage(femaleBg, 0, 0);
+                            }
+
+                        }, 400);
+                    });
+                }
+            });
+        });
+
+        var trackerTask;
+        //开始识别
+        document.getElementById('track').addEventListener('click', function() {
+            if (!img.src) {
+                return null;
+            }
+            Box.msg('正在识别...');
+            reset();
+            c.width = img.width;
+            c.height = img.height;
+            var stepSize = myStepSize.value();
+            var trackMode = myScaleFactor.value();
+            console.log(`识别步长:${stepSize}, 比例因子: ${trackMode}`);
+            tracker.setStepSize(stepSize);
+            tracker.setScaleFactor(trackMode);
+            if (trackerTask) {
+                trackerTask.stop();
+            }
+            if (img.naturalWidth > img.width) {
+                prop = img.naturalWidth / img.width;
+            } else {
+                prop = 1;
+            }
+            trackerTask = tracking.track('#img', tracker);
+        });
+        //划线
+        function plot(x, y, w, h) {
+            var rect = document.createElement('div');
+            document.querySelector('.demo-container').appendChild(rect);
+            rect.classList.add('rect');
+            rect.style.width = w + 'px';
+            rect.style.height = h + 'px';
+            rect.style.left = (img.offsetLeft + x) + 'px';
+            rect.style.top = (img.offsetTop + y) + 'px';
+        }
+        //恢复现场
+        function reset() {
+            theFace = null;
+            demo.classList.add('hide');
+            faceLeft = 0;
+            faceTop = 0;
+            document.getElementById('file').value = '';
+            var rects = document.querySelectorAll('.rect');
+            if (rects) {
+                var i = 0;
+                for (; i < rects.length; i++) {
+                    main.removeChild(rects[i]);
+                }
+            }
+        }
+        document.getElementById('reset').addEventListener('click', function() {
+            img.removeAttribute('src');
+            ctx.clearRect(0, 0, c.width, c.height);
+            comBtn.forEach(function(e) {
+                e.classList.add('hide');
+            });
+            reset();
+        });
+    });
+    seajs.use('app');
+    </script>
+    <script type="text/javascript" src="//push.zhanzhang.baidu.com/push.js"></script>
+</body>
+
+</html>

@@ -10,6 +10,10 @@
 
 https://refined-x.com/frontend-face-detection/
 
+## 更新记录
+
+【2018-08-02】 增加自动匹配功能，匹配到人脸自动停止
+
 ## 许可证
 
 [MIT](http://opensource.org/licenses/MIT)
